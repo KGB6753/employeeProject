@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zerock.mapper.EmployeeMapper">
+	<sql id="criteria">
+		<trim prefix="AND">
+			<choose>
+				<when test="type == 'E'.toString()">
+					e.emp_no like CONCAT('%', #{keyword}, '%')
+				</when>
+				<when test="type == 'N'.toString()">
+					e.last_name like CONCAT('%', #{keyword}, '%')
+				</when>
+				<when test="type == 'D'.toString()">
+					d.dept_name like CONCAT('%', #{keyword}, '%')
+				</when>
+				<when test="type == 'T'.toString()">
+					e.title like CONCAT('%', #{keyword}, '%')
+				</when>
+			</choose>
+		</trim>
+	</sql>
+
+	<select id="getListWithPaging"
+		resultType="org.zerock.domain.vo.EmployeeVO">
+		<![CDATA[
+			select e.*, d.dept_name 
+			from employees e 
+			join departments d on e.dept_no = d.dept_no 
+			where e.emp_no > 0 
+		]]>
+
+		<include refid="criteria" />
+
+		order by e.emp_no desc
+		limit #{pageStart}, #{amount}
+
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		<![CDATA[
+			select count(*) 
+			from employees e
+			join departments d on e.dept_no = d.dept_no
+			where e.emp_no > 0
+		]]>
+		<include refid="criteria" />
+	</select>
+
+
+	<insert id="insertSelectKey">
+		<selectKey order="BEFORE" keyProperty="emp_no" resultType="long">
+			<![CDATA[
+				select MAX(emp_no)+1 from employees
+			]]>
+		</selectKey>
+			<![CDATA[
+				insert into employees
+				(emp_no, dept_no, title, birth_date, first_name, last_name, gender, hire_date, emp_pw) 
+				values (#{emp_no},#{dept_no},#{title},#{birth_date},#{first_name},#{last_name}, #{gender},#{hire_date}, #{emp_pw})
+			]]>
+	</insert>
+	
+	<insert id="insertAuth">
+		<selectKey order="BEFORE" keyProperty="emp_no" resultType="long">
+			<![CDATA[
+				select MAX(emp_no)+1 from employees_auth
+			]]>
+		</selectKey>
+			<![CDATA[
+				insert into employees_auth
+				(emp_no, auth) 
+				values (#{emp_no},"ROLE_MEMBER")
+			]]>
+	</insert>
+	
+	<select id="read" resultType="org.zerock.domain.vo.EmployeeVO">
+		<![CDATA[
+			select e.*, d.dept_name 
+			from employees e 
+			join departments d on e.dept_no = d.dept_no 
+			where e.emp_no = #{emp_no}
+			]]>
+	</select>
+	
+	<select id="getDeptNames" resultType="String">
+		<![CDATA[
+		select dept_name 
+		from dept_emp de join departments d on de.dept_no = d.dept_no 
+		where de.emp_no = #{emp_no} order by de.from_date
+			]]>
+	</select>
+	
+	<select id="getTitles" resultType="String">
+		<![CDATA[
+		select title 
+			from titles 
+			where emp_no = #{emp_no}
+			order by from_date
+			]]>
+	</select>
+	
+	<update id="update">
+	<![CDATA[
+      update employees 
+      set dept_no =#{dept_no},
+         title=#{title},
+         gender=#{gender},
+         first_name= #{first_name},
+         last_name= #{last_name},
+         hire_date= #{hire_date},   
+         birth_date= #{birth_date}      
+      where emp_no = #{emp_no}
+      ]]>
+   </update>
+   
+   <resultMap type="org.zerock.domain.EmployeeDTO" id="memberMap">
+		<id property="emp_no" column="emp_no" />
+		<result property="dept_no" column="dept_no" />
+		<result property="title" column="title" />
+		<result property="first_name" column="first_name"/>
+		<result property="last_name" column="last_name"/>
+		<result property="gender" column="gender" />
+		<result property="birth_date" column="birth_date" />
+		<result property="hire_date" column="hire_date" />
+		<result property="emp_pw" column="emp_pw" />
+		<collection property="authList" resultMap="authMap">
+		</collection>
+	</resultMap>
+
+	<resultMap type="org.zerock.domain.AuthVO" id="authMap">
+		<result property="emp_no" column="emp_no"/>
+		<result property="auth" column="auth"/>
+	</resultMap>
+
+
+	<select id="logRead" resultMap="memberMap">
+		select emp.*, auth.auth
+		from employees emp
+		left join employees_auth auth 
+		on emp.emp_no = auth.emp_no
+		where emp.emp_no = #{emp_no}
+	</select>
+	
+	<update id="changePwd">
+	<![CDATA[
+      update employees 
+      set emp_pw = #{emp_pw} 
+      where emp_no = #{emp_no}
+      ]]>
+   </update>
+
+</mapper>

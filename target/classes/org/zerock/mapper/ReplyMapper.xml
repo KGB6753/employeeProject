@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace = "org.zerock.mapper.ReplyMapper">
+  	<select id="getCountByBno" resultType="int">
+  		select count(r_no) from reply where b_no=#{b_no}
+  	</select>
+  
+  
+  
+  	<select id="getListWithPaging" resultType="org.zerock.domain.ReplyVO">
+  		<![CDATA[
+  		SELECT * FROM reply WHERE b_no=#{b_no} and r_no>0 ORDER BY r_no limit #{cri.pageStart},#{cri.amount}
+  		]]>
+  	</select>
+  
+  	<update id="update">
+  	<![CDATA[
+  		update reply set reply = #{reply}, update_date = now() where r_no = #{r_no}
+  		]]>
+  	</update>
+  	
+  	<delete id="delete" >
+  	<![CDATA[
+  		DELETE FROM reply WHERE r_no=#{r_no}
+  	]]>
+  	
+  	</delete>
+  	
+  	<select id="read" resultType="org.zerock.domain.ReplyVO">
+  	<![CDATA[
+  		SELECT * FROM reply WHERE r_no=#{r_no}
+  	]]>
+  	
+  	</select>
+  	
+  	<insert id='insert' keyProperty="r_no" useGeneratedKeys="true">
+  		<![CDATA[
+  			INSERT INTO reply (b_no, reply, emp_no) VALUES (#{b_no},#{reply},#{emp_no})
+  		]]>
+  	</insert>
+  	
+  	<delete id="deleteAll">
+		<![CDATA[
+			delete from reply where b_no = #{b_no}
+		]]>
+	</delete>
+  	
+  	
+  </mapper>

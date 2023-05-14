@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zerock.mapper.BoardAttachMapper">
+	<select id="findByB_no" resultType="org.zerock.domain.BoardAttachVO">
+		<![CDATA[
+			select * from attach where b_no=#{b_no}
+		]]>
+	</select>
+	
+	<insert id="insert">
+		
+		<![CDATA[
+			insert into attach(uuid, upload_Path, file_Name, file_Type, b_no)
+			values (#{uuid}, #{upload_Path}, #{file_Name}, #{file_Type}, #{b_no})
+		]]>
+	</insert>
+	
+	
+	<delete id="delete">
+		<![CDATA[
+			delete from attach where uuid = #{uuid}
+		]]>
+	</delete>
+	
+	<delete id="deleteAll">
+		<![CDATA[
+			delete from attach where b_no = #{b_no}
+		]]>
+	</delete>
+	
+</mapper>

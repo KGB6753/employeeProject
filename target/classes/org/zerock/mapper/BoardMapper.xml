@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zerock.mapper.BoardMapper">
+<!-- 인클루드 방식으로 저장해서 쓸 수 있음 -->
+	<sql id="criteria">
+				<!-- prefixOverrides="OR"  앞에 OR 있으면 지우고 ()AND 넣어라 -->
+		<trim prefix="AND (" suffix=")" prefixOverrides="OR">
+			<foreach item="type" collection="typeArr">
+				<trim prefix="OR">
+					<choose>
+						<when test="type=='T'.toString()">
+							title LIKE CONCAT('%',#{keyword},'%')
+						</when>
+						<when test="type=='C'.toString()">
+							content LIKE CONCAT('%',#{keyword},'%')
+						</when>
+						<when test="type=='E'.toString()">
+							emp_no LIKE CONCAT('%',#{keyword},'%')
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+	
+	<select id="getList" resultType="org.zerock.domain.BoardVO">
+		<!-- sql문임을 알려주려면 CDATA 써야함 -->
+		<![CDATA[
+		SELECT * FROM board where b_no > 0
+		]]>
+	</select>
+
+	<select id="getListWithPaging"
+		resultType="org.zerock.domain.BoardVO">
+		<!-- sql문임을 알려주려면 CDATA 써야함 -->
+		<![CDATA[
+		SELECT * FROM board WHERE b_no > 0
+		]]>
+		<!-- 인클루드 방식으로 저장해서 쓸 수 있음 -->
+		<include refid="criteria"/>
+		<![CDATA[
+		order by b_no desc limit #{pageStart},#{amount}
+		]]>
+		
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		<![CDATA[
+		SELECT COUNT(*) FROM board where b_no > 0
+		]]>
+		<include refid="criteria"/>
+	</select>
+	
+
+
+	<select id="read" resultType="org.zerock.domain.BoardVO">
+		<!-- sql문임을 알려주려면 CDATA 써야함 -->
+		<![CDATA[
+		SELECT * FROM board 
+		]]>
+		<where>
+			<if test="b_no != null"> b_no = #{b_no}</if>
+		</where>
+	</select>
+
+	<insert id="insert" keyProperty="b_no" useGeneratedKeys="true">
+		<!-- 매개변수인 클래스 자체의 이름 없이 안의 속성만 바로 쓰면 자동으로 알아서 처리함 -->
+		<![CDATA[
+		insert into board(title, content, emp_no) values (#{title},#{content},#{emp_no})
+		]]>
+	</insert>
+
+	<insert id="insertSelectKey">
+		<!-- selectKey 태그 쓰면 태그안에서 먼저 실행시키거나 마지막에 실행시켜서 조건 추가 가능해짐 -->
+		<selectKey order="BEFORE" keyProperty="b_no"
+			resultType="Long">
+			<![CDATA[
+			select MAX(b_no)+1 from board
+			]]>
+		</selectKey>
+		<![CDATA[
+		insert into board(b_no, title, content, emp_no) values (#{b_no},#{title},#{content},#{emp_no})
+		]]>
+	</insert>
+
+	<delete id="delete">
+		<![CDATA[
+		delete from board where b_no=#{b_no}
+		]]>
+	</delete>
+
+	<update id="update">
+		<![CDATA[
+		update board set title =#{title},content=#{content},emp_no=#{emp_no},update_date=now() where b_no=#{b_no}
+		]]>
+	</update>
+	
+	<update id="updateReplyCnt">
+		<![CDATA[
+		update board set replycnt = replycnt + #{amount} where b_no=#{b_no}
+		]]>
+	</update>
+	
+	
+</mapper>
